@@ -1,0 +1,56 @@
+[build-system]
+requires = ["flit_core >=3.2,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "translate_md"
+authors = [
+    {name = "Agustín Piqueres", email = "agustin.piqueres@gmail.com"}
+]
+dependencies = [
+    "mdformat>=0.7.16",
+    "markdown-it-py>=2.2.0",
+    "aiohttp>=3.8.4"
+]
+
+license = {file = "LICENSE"}
+classifiers = [
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+    "Programming Language :: Python :: 3.10",
+]
+readme = "README.md"
+dynamic = ["version", "description"]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=7.2.0",
+    "pytest-cov>=4.0.0",
+    "pytest-mock>=3.10.0",
+    "coverage>=7.1.0",
+    "nox>=2022.11.21"
+]
+dev = [
+    "black",
+    "mypy",
+    "ruff"
+]
+
+# [project.scripts]
+# helpner = "translate_md.main:app"
+
+[project.urls]
+Source = "https://github.com/plaguss/translate_md"
+
+[tool.pytest]
+addopts = ["--cov=helpner", "--cov-report=term-missing"]
+
+[tool.ruff]
+# Enable Pyflakes and pycodestyle rules.
+select = ["E", "F", "I001"]
+line-length = 88  # Same as black
+# Assume Python 3.11.
+target-version = "py311"
+
+[tool.ruff.pydocstyle]
+convention = "google" 
