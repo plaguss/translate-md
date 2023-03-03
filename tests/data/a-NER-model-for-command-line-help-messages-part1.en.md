@@ -129,6 +129,5 @@ right), the model cannot be better than the data it was fed with. In a posterior
 we will see how the data powering this model is obtained.
 
 <!-- ### Related posts
-
 add here -->
 

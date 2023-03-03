@@ -26,7 +26,7 @@ class TestMarkdownProcessor:
         assert isinstance(toks[0], md.Token)
 
     def test_repr(self):
-        assert repr(mdproc) == "MarkdownProcessor(75)"
+        assert repr(mdproc) == "MarkdownProcessor(72)"
 
     def test_test(self):
         # print([t.type for t in mdproc.tokens])
@@ -44,3 +44,15 @@ def test_is_figure():
     text = '![helpner](/images/helpner-arch-part1.png)'
     assert md.is_figure(text) is True
     assert md.is_figure(text.replace("!", "-")) is False
+
+
+def test_is_code():
+    text = '```console\n$ pip install helpner\n```'
+    assert md.is_code(text) is True
+    assert md.is_code(text.replace("`", "-")) is False
+
+
+def test_is_comment():
+    text = '<!-- ### Related posts\nadd here -->'
+    assert md.is_comment(text) is True
+    assert md.is_comment(text.replace("<!--", "-")) is False
