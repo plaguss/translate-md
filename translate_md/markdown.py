@@ -5,11 +5,12 @@ from markdown_it import MarkdownIt
 from markdown_it.token import Token
 from mdformat.renderer import MDRenderer
 import re
+
 md = MarkdownIt("zero")
 
 
 def read_file(filename: Path) -> str:
-    """Read a whole markdown file to a string. """
+    """Read a whole markdown file to a string."""
     with open(filename, "r") as f:
         return f.read()
 
@@ -23,8 +24,8 @@ class MarkdownProcessor:
 
     @property
     def tokens(self) -> list[Token]:
-        """Parsed pieces of the markdown file. 
-        The content will be extracted from these pieces, updated and 
+        """Parsed pieces of the markdown file.
+        The content will be extracted from these pieces, updated and
         created back.
         TODO
         The setter method deals with updating the appropriate positions.
@@ -41,7 +42,7 @@ class MarkdownProcessor:
         return type(self).__name__ + f"({len(self.tokens)})"
 
     def get_pieces(self) -> list[str]:
-        """Gets the pieces of the markdown file to be translated. 
+        """Gets the pieces of the markdown file to be translated.
 
         TODO:
         The relevant tokens are:
@@ -52,7 +53,14 @@ class MarkdownProcessor:
         for i, t in enumerate(self.tokens):
             # Logic to for the relevant tokens.
             if t.type == "inline":
-                if (is_front_matter(t.content) or is_figure(t.content)):
+                if any(
+                    (
+                        is_front_matter(t.content),
+                        is_figure(t.content),
+                        is_code(t.content),
+                        is_comment(t.content),
+                    )
+                ):
                     continue
                 toks.append(t)
                 self._positions.append(i)
@@ -65,7 +73,7 @@ class MarkdownProcessor:
 
     def render() -> str:
         """Obtain the markdown file in the target language.
-        
+
         This content may be written directly to a file.
         """
         options, env = {}, {}  # dummy variables
@@ -96,7 +104,7 @@ def is_front_matter(text: str) -> bool:
 def is_figure(text: str) -> bool:
     """Check if a paragraph is just a picture in the doc.
 
-    Some lines may contain just a picture, and there is no 
+    Some lines may contain just a picture, and there is no
     reason to translate those.
     i.e.
     '![helpner](/images/helpner-arch-part1.png)'
@@ -110,3 +118,13 @@ def is_figure(text: str) -> bool:
     """
     text = text.strip()
     return text.startswith("![") and text.endswith(")")
+
+
+def is_code(text: str) -> bool:
+    text = text.strip()
+    return text.startswith("```") and text.endswith("```")
+
+
+def is_comment(text: str) -> bool:
+    text = text.strip()
+    return text.startswith("<!--") and text.endswith("-->")
