@@ -10,6 +10,8 @@ filename = (
     / "a-NER-model-for-command-line-help-messages-part1.en.md"
 )
 
+mdproc = md.MarkdownProcessor(md.read_file(filename))
+
 
 def test_read_file():
     content = md.read_file(filename)
@@ -17,5 +19,28 @@ def test_read_file():
 
 
 class TestMarkdownProcessor:
-    def test_tokens():
-        pass
+
+    def test_tokens(self):
+        toks = mdproc.tokens
+        assert isinstance(toks, list)
+        assert isinstance(toks[0], md.Token)
+
+    def test_repr(self):
+        assert repr(mdproc) == "MarkdownProcessor(75)"
+
+    def test_test(self):
+        # print([t.type for t in mdproc.tokens])
+        # print(mdproc.tokens[1].content)
+        assert 1==2
+
+
+def test_is_front_matter():
+    text = """---\ntitle: "A NER Model for Command Line Help Messages (Part 1: The command line program)"\ndate: 2023-02-21T18:55:27+01:00\ndraft: false\ncategories: ["NLP"]\ntags: ["NLP", "NER", "spaCy", "Python", "rich"]\n---"""
+    assert md.is_front_matter(text) is True
+    assert md.is_front_matter(text.replace("---", "")) is False
+
+
+def test_is_figure():
+    text = '![helpner](/images/helpner-arch-part1.png)'
+    assert md.is_figure(text) is True
+    assert md.is_figure(text.replace("!", "-")) is False
