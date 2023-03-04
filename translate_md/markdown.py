@@ -48,10 +48,6 @@ class MarkdownProcessor:
             self._tokens = self.md.parse(self._content)
         return self._tokens
 
-    @tokens.setter
-    def tokens(self, toks: list[Token]) -> None:
-        self._tokens = toks
-
     def __repr__(self) -> str:
         return type(self).__name__ + f"({len(self.tokens)})"
 
@@ -89,19 +85,24 @@ class MarkdownProcessor:
             texts (list[str]): List of texts to insert back to the
             document translated.
         """
-        self.tokens = 1
+        tokens = self._tokens
+        # TODO: Update the correct tokens
 
-    def write_to(self) -> str:
+    def _render(self):
         """Obtain the markdown file in the target language.
 
         This content may be written directly to a file.
         """
+        # TODO: Render the content back to tokens.
         options, env = {}, {}  # dummy variables
         renderer = MDRenderer()
         output_markdown = renderer.render(tokens, options, env)
         # mdformat adds some extra \, remove it before writing the content back.
         output_markdown = output_markdown.replace("\\", "")
-        return output_markdown
+        pass
+
+    def write_to(self, filename: Path) -> None:
+        raise NotImplementedError
 
 
 def is_front_matter(text: str) -> bool:
