@@ -16,7 +16,21 @@ def read_file(filename: Path) -> str:
 
 
 class MarkdownProcessor:
+    """Class that allows to work with a markdown file, extracting
+    the text content to be translated.
+
+    The expected format of the markdown file is the one used in hugo
+    for blogging.
+
+    Notes:
+        See https://gohugo.io/ for type of markdown files 
+    """
     def __init__(self, markdown_content: str) -> None:
+        """
+        Args:
+            markdown_content (str):
+                The content of a markdown file as a string.
+        """
         self.md = MarkdownIt("zero")
         self._tokens = None
         self._positions = None
@@ -44,14 +58,16 @@ class MarkdownProcessor:
     def get_pieces(self) -> list[str]:
         """Gets the pieces of the markdown file to be translated.
 
-        TODO:
-        The relevant tokens are:
-        - type == 'inline'
+        The relevant pieces are those tokens considered of type
+        'inline' and which aren't the front matter, a figure, code
+        or markdown comments.
+
+        Internally stores the position of the corresponding tokens
+        for later use.
         """
         self._positions = []
         toks = []
         for i, t in enumerate(self.tokens):
-            # Logic to for the relevant tokens.
             if t.type == "inline":
                 if any(
                     (
@@ -62,16 +78,20 @@ class MarkdownProcessor:
                     )
                 ):
                     continue
-                toks.append(t)
+                toks.append(t.content)
                 self._positions.append(i)
         return toks
 
-    # def update_content(self, text: list[str]) -> None:
-    #     """Takes the translated text and inserts it back to the tokens
-    #     it belongs to. """
-    #     self.
+    def update(self, texts: list[str]) -> None:
+        """Update the content with the translated pieces.
 
-    def render() -> str:
+        Args:
+            texts (list[str]): List of texts to insert back to the
+            document translated.
+        """
+        self.tokens = 1
+
+    def write_to(self) -> str:
         """Obtain the markdown file in the target language.
 
         This content may be written directly to a file.
