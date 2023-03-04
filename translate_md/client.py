@@ -1,16 +1,19 @@
-"""
-https://docs.aiohttp.org/en/stable/client_quickstart.html
-
-ref:
-https://stackoverflow.com/questions/42009202/how-to-call-a-async-function-contained-in-a-class
-"""
+"""Client for spanglish. """
 
 import json
+from pathlib import Path
+from typing import Optional
 from urllib.parse import urljoin
 
 import requests
 
+import translate_md.markdown as md
+from translate_md.logger import get_logger
+
 SPANGLISH_URL = r"http://localhost:8000/"
+
+
+logger = get_logger("client")
 
 
 class SpanglishClient:
@@ -34,18 +37,18 @@ class SpanglishClient:
         """
         return self._request("/single", payload=text)
 
-    def translate_batch(self, texts: list[str]) -> str:
+    def translate_batch(self, texts: list[str]) -> list[str]:
         """Translates a batch of texts.
 
-        Instead of calling repeatedly on a loop the method `translate`, 
-        this method should be preferred, send a list of texts to 
+        Instead of calling repeatedly on a loop the method `translate`,
+        this method should be preferred, send a list of texts to
         translate and get them back in the same order.
 
         Args:
             texts (list[str]): Texts to translate
 
         Returns:
-            str: _description_
+            list[str]: list of texts translated.
 
         Examples:
             ```python
@@ -55,8 +58,26 @@ class SpanglishClient:
         """
         return json.loads(self._request("/batched", payload=json.dumps(texts)))
 
-    def translate_file(self, filename: str) -> None:
-        raise NotImplementedError
+    def translate_file(
+        self, filename: Path, new_filename: Optional[Path] = None
+    ) -> None:
+        """_summary_
+
+        Args:
+            filename (Path): Path to the markdown file.
+            new_filename (Optional[Path], optional):
+                New filename to write the contents back. Defaults to None.
+        """
+        md_content = md.read_file(filename)
+        mdproc = md.MarkdownProcessor(md_content)
+        pieces = mdproc.get_pieces()
+        # TODO: Check if the file is big (say more than 5000 characters)
+        # and send the content in pieces.
+        translated_text = self.translate_batch(pieces)
+        mdproc.update(translated_text)
+        if new_filename is None:
+            new_filename = filename.parent / f"{filename.stem}.es{filename.suffix}"
+        mdproc.write_to(new_filename)
 
     def __repr__(self) -> str:
         return type(self).__name__ + f"({self._spanglish_url})"
