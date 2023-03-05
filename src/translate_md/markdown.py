@@ -4,7 +4,6 @@ from pathlib import Path
 from markdown_it import MarkdownIt
 from markdown_it.token import Token
 from mdformat.renderer import MDRenderer
-import re
 
 md = MarkdownIt("zero")
 
@@ -23,8 +22,9 @@ class MarkdownProcessor:
     for blogging.
 
     Notes:
-        See https://gohugo.io/ for type of markdown files 
+        See https://gohugo.io/ for type of markdown files
     """
+
     def __init__(self, markdown_content: str) -> None:
         """
         Args:
@@ -62,7 +62,7 @@ class MarkdownProcessor:
         for later use.
         """
         self._positions = []
-        toks = []
+        pieces = []
         for i, t in enumerate(self.tokens):
             if t.type == "inline":
                 if any(
@@ -74,9 +74,9 @@ class MarkdownProcessor:
                     )
                 ):
                     continue
-                toks.append(t.content)
+                pieces.append(t.content)
                 self._positions.append(i)
-        return toks
+        return pieces
 
     def update(self, texts: list[str]) -> None:
         """Update the content with the translated pieces.
@@ -84,13 +84,24 @@ class MarkdownProcessor:
         Args:
             texts (list[str]): List of texts to insert back to the
             document translated.
+
+        Raises:
+            ValueError: If the number of texts to update
+                don't match the number of texts obtained
+                from get_pieces method.
+
+        See Also:
+            get_pieces
         """
+        if len(self._positions) != len(texts):
+            raise ValueError(
+                "There should be the same number of texts that you obtained from get_pieces"
+            )
         for i, t in zip(self._positions, texts):
             self._tokens[i].content = t
 
     def render(self) -> str:
-        """Get a new markdown file with the paragraphs translated.
-        """
+        """Get a new markdown file with the paragraphs translated."""
         options, env = {}, {}  # dummy variables
         renderer = MDRenderer()
         output_markdown = renderer.render(self._tokens, options, env)
@@ -99,10 +110,10 @@ class MarkdownProcessor:
         return output_markdown
 
     def write_to(self, filename: Path) -> None:
-        """_summary_
+        """Write the content of the updated markdown to disk.
 
         Args:
-            filename (Path): _description_
+            filename (Path): Name of the new file.
         """
         translated_file = self.render()
         with open(filename, "w") as f:

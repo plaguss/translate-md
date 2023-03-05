@@ -28,10 +28,23 @@ class TestMarkdownProcessor:
     def test_repr(self):
         assert repr(mdproc) == "MarkdownProcessor(72)"
 
-    def test_test(self):
-        # print([t.type for t in mdproc.tokens])
-        # print(mdproc.tokens[1].content)
-        assert 1==2
+    def test_get_pieces(self):
+        assert len(mdproc.get_pieces()) == 16
+        assert all([isinstance(p, str) and len(p) > 0 for p in mdproc.get_pieces()])
+
+    def test_update(self):
+        pieces = mdproc.get_pieces()
+        with pytest.raises(ValueError):
+            mdproc.update(["wrong length"])
+        new_pieces = [""] * len(pieces)
+        new_pieces[0] = "texto traducido"
+        mdproc.update(new_pieces)
+        assert mdproc.tokens[mdproc._positions[0]].content == "texto traducido"
+
+    # def test_test(self):
+    #     # print([t.type for t in mdproc.tokens])
+    #     # print(mdproc.tokens[1].content)
+    #     assert 1==2
 
 
 def test_is_front_matter():
