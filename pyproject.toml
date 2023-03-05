@@ -31,7 +31,7 @@ test = [
     "pytest-cov>=4.0.0",
     "pytest-mock>=3.10.0",
     "coverage>=7.1.0",
-    "nox>=2022.11.21"
+    "nox>=2022.11.21",
 ]
 dev = [
     "black",
@@ -46,10 +46,10 @@ dev = [
 Source = "https://github.com/plaguss/translate_md"
 
 [tool.hatch.version]
-path = "src/translate_md/__about__.py"
+path = "src/translate_md/__init__.py"
 
 [tool.pytest]
-addopts = ["--cov=helpner", "--cov-report=term-missing"]
+addopts = ["--cov=translate_md", "--cov-report=term-missing"]
 
 [tool.ruff]
 # Enable Pyflakes and pycodestyle rules.
