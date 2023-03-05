@@ -1,9 +1,10 @@
 [build-system]
-requires = ["flit_core >=3.2,<4"]
-build-backend = "flit_core.buildapi"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [project]
 name = "translate_md"
+description = "Python client to translate markdown files from englisth to spanish"
 authors = [
     {name = "Agustín Piqueres", email = "agustin.piqueres@gmail.com"}
 ]
@@ -12,15 +13,17 @@ dependencies = [
     "markdown-it-py>=2.2.0",
     "aiohttp>=3.8.4"
 ]
-
 license = {file = "LICENSE"}
 classifiers = [
     "Intended Audience :: Developers",
     "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+    "Natural Language :: English",
+    "Programming Language :: Python :: Implementation :: CPython",
     "Programming Language :: Python :: 3.10",
 ]
 readme = "README.md"
-dynamic = ["version", "description"]
+requires-python = ">=3.10"
+dynamic = ["version"]
 
 [project.optional-dependencies]
 test = [
@@ -42,6 +45,9 @@ dev = [
 [project.urls]
 Source = "https://github.com/plaguss/translate_md"
 
+[tool.hatch.version]
+path = "src/translate_md/__about__.py"
+
 [tool.pytest]
 addopts = ["--cov=helpner", "--cov-report=term-missing"]
 
@@ -54,3 +60,4 @@ target-version = "py310"
 
 [tool.ruff.pydocstyle]
 convention = "google" 
+[tool.hatch]
