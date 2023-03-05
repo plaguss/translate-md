@@ -85,8 +85,8 @@ class MarkdownProcessor:
             texts (list[str]): List of texts to insert back to the
             document translated.
         """
-        tokens = self._tokens
-        # TODO: Update the correct tokens
+        for i, t in zip(self._positions, texts):
+            self._tokens[i].content = t
 
     def _render(self):
         """Obtain the markdown file in the target language.
