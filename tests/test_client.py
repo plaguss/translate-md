@@ -1,6 +1,6 @@
 """Tests for translate_md/client.py. """
 
-import pytest
+import tempfile
 from pathlib import Path
 from translate_md import client
 import json
@@ -39,3 +39,16 @@ class TestClient:
             return_value=json.dumps(["texto uno", "texto dos"])
         )
         assert spanglish_client.translate_batch(["text one", "text two"]) == ["texto uno", "texto dos"]
+
+    def test_translate_file(self, mocker):
+        translation = ["hola"] * 16  # The number of pieces the file contains once processed
+        mocker.patch(
+            "translate_md.client.SpanglishClient._request",
+            return_value=json.dumps(translation)
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            spanglish_client.translate_file(filename)
+            assert (filename.parent / f"{filename.stem}.es{filename.suffix}").is_file()
+            (filename.parent / f"{filename.stem}.es{filename.suffix}").unlink()
+            spanglish_client.translate_file(filename, new_filename=Path(tmp) / "testfile.md")
+            assert (Path(tmp) / "testfile.md").is_file()
