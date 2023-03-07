@@ -43,13 +43,13 @@ dev = [
 # helpner = "translate_md.main:app"
 
 [project.urls]
-Source = "https://github.com/plaguss/translate_md"
+Source = "https://github.com/plaguss/translate-md"
 
 [tool.hatch.version]
 path = "src/translate_md/__init__.py"
 
 [tool.pytest]
-addopts = ["--cov=translate_md", "--cov-report=term-missing"]
+addopts = ["--cov=src/translate_md", "--cov-report=term-missing"]
 
 [tool.ruff]
 # Enable Pyflakes and pycodestyle rules.
@@ -60,4 +60,3 @@ target-version = "py310"
 
 [tool.ruff.pydocstyle]
 convention = "google" 
-[tool.hatch]
