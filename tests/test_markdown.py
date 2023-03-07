@@ -18,6 +18,11 @@ def test_read_file():
     assert isinstance(content, str)
 
 
+@pytest.fixture(scope="session")
+def mdprocessor():
+    return md.MarkdownProcessor(md.read_file(filename))
+
+
 class TestMarkdownProcessor:
 
     def test_tokens(self):
@@ -40,11 +45,19 @@ class TestMarkdownProcessor:
         new_pieces[0] = "texto traducido"
         mdproc.update(new_pieces)
         assert mdproc.tokens[mdproc._positions[0]].content == "texto traducido"
+        assert all([mdproc._tokens[p].content == "" for p in mdproc._positions[1:]])
 
-    # def test_test(self):
-    #     # print([t.type for t in mdproc.tokens])
-    #     # print(mdproc.tokens[1].content)
-    #     assert 1==2
+    def test_render(self, mdprocessor):
+        # Update with silly content
+        pieces = mdprocessor.get_pieces()
+        assert len(mdprocessor._content) == 6250
+        # new_pieces = [""] * len(pieces)
+        new_pieces = ["hola"] * len(pieces)
+        mdprocessor.update(new_pieces)
+ 
+        out = mdprocessor.render()
+        assert len(out) == 1615
+        assert "hola" in out
 
 
 def test_is_front_matter():
