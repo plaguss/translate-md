@@ -99,12 +99,19 @@ class MarkdownProcessor:
             )
         for i, t in zip(self._positions, texts):
             self._tokens[i].content = t
+            # Not clear why it should be changed the children yet, but...
+            self._tokens[i].children[0].content = t
 
     def render(self) -> str:
-        """Get a new markdown file with the paragraphs translated."""
+        """Get a new markdown file with the paragraphs translated.
+        
+        Args:
+            texts (list[str]): List of texts to insert back to the
+            document translated.
+        """
         options, env = {}, {}  # dummy variables
         renderer = MDRenderer()
-        output_markdown = renderer.render(self._tokens, options, env)
+        output_markdown = renderer.render(self.tokens, options, env)
         # mdformat adds some extra \, remove it before writing the content back.
         output_markdown = output_markdown.replace("\\", "")
         return output_markdown
