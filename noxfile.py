@@ -20,7 +20,7 @@ def coverage(session):
         # "tests",
         f"--cov={LIBNAME}",
         "--cov-report=term-missing",
-        # "--cov-config=pyproject.toml",
+        "--cov-config=pyproject.toml",
     )
 
 @nox.session
