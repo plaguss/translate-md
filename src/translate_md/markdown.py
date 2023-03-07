@@ -1,6 +1,7 @@
 """Markdown related facilities. """
 
 from pathlib import Path
+
 from markdown_it import MarkdownIt
 from markdown_it.token import Token
 from mdformat.renderer import MDRenderer
@@ -95,7 +96,8 @@ class MarkdownProcessor:
         """
         if len(self._positions) != len(texts):
             raise ValueError(
-                "There should be the same number of texts that you obtained from get_pieces"
+                "There should be the same number of texts that you obtained from "
+                "get_pieces"
             )
         for i, t in zip(self._positions, texts):
             self._tokens[i].content = t
@@ -104,7 +106,7 @@ class MarkdownProcessor:
 
     def render(self) -> str:
         """Get a new markdown file with the paragraphs translated.
-        
+
         Args:
             texts (list[str]): List of texts to insert back to the
             document translated.
