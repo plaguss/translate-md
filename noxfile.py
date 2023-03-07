@@ -1,6 +1,7 @@
 import nox
 
-LIBNAME = "src/translate_md"
+LIBNAME = "translate_md"
+SOURCE = "src/translate_md"
 
 def install_dev_requirements(session):
     session.run("pip", "install", "-r", "dev-requirements.txt")
@@ -16,8 +17,7 @@ def coverage(session):
         "python",
         "-m",
         "pytest",
-        # "-s",
-        # "tests",
+        "tests",
         f"--cov={LIBNAME}",
         "--cov-report=term-missing",
         "--cov-config=pyproject.toml",
@@ -26,19 +26,19 @@ def coverage(session):
 @nox.session
 def lint(session):
     session.install("black", "ruff")
-    session.run("ruff", LIBNAME)
-    session.run("black", "--check", LIBNAME)
+    session.run("ruff", SOURCE)
+    session.run("black", "--check", SOURCE)
 
 
 @nox.session
 def typecheck(session):
     session.install("mypy")
     install_dev_requirements(session)
-    session.run("mypy", "-p", LIBNAME, "--no-incremental")
+    session.run("mypy", "-p", SOURCE, "--no-incremental")
 
 
-@nox.session
+@nox.session(reuse_venv=True)
 def format(session):
     session.install("black", "ruff")
-    session.run("ruff", LIBNAME, "--fix")
-    session.run("black", LIBNAME)
+    session.run("ruff", SOURCE, "--fix")
+    session.run("black", SOURCE)
