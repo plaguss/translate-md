@@ -1,0 +1,8 @@
+# Test
+pytest>=7.2.2
+pytest-cov>=4.0.0
+pytest-mock>=3.10.0
+# Lint/format
+black>=23.1.0
+mypy>=1.1.1
+ruff>=0.0.254
