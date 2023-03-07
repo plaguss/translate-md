@@ -3,6 +3,7 @@
 import pytest
 from pathlib import Path
 from translate_md import markdown as md
+import tempfile
 
 filename = (
     Path(__file__).parent
@@ -59,6 +60,17 @@ class TestMarkdownProcessor:
         assert len(out) == 1615
         assert "hola" in out
 
+    def test_write_to(self, mdprocessor):
+        # Update with silly content
+        pieces = mdprocessor.get_pieces()
+        new_pieces = ["hola"] * len(pieces)
+        mdprocessor.update(new_pieces)
+
+        with tempfile.TemporaryDirectory() as tmp:
+            mdprocessor.write_to(Path(tmp) / "testfile.md")
+            assert (Path(tmp) / "testfile.md").is_file()
+            assert len(md.read_file(Path(tmp) / "testfile.md")) == 1615
+ 
 
 def test_is_front_matter():
     text = """---\ntitle: "A NER Model for Command Line Help Messages (Part 1: The command line program)"\ndate: 2023-02-21T18:55:27+01:00\ndraft: false\ncategories: ["NLP"]\ntags: ["NLP", "NER", "spaCy", "Python", "rich"]\n---"""
