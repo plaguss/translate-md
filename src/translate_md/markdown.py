@@ -97,7 +97,7 @@ class MarkdownProcessor:
         if len(self._positions) != len(texts):
             raise ValueError(
                 "There should be the same number of texts that you obtained from "
-                "get_pieces"
+                f"get_pieces: positions: {len(self._positions)}, texts: {len(texts)}"
             )
         for i, t in zip(self._positions, texts):
             self._tokens[i].content = t
