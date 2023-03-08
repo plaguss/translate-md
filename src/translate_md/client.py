@@ -17,6 +17,13 @@ logger = get_logger("client")
 
 
 class SpanglishClient:
+    r"""Client to interact with the [Spanglish](https://github.com/plaguss/spanglish)
+    service.
+
+    Args:
+        url (str, optional):
+            URL where the service is exposed. Defaults to SPANGLISH_URL.
+    """
     def __init__(self, url: str = SPANGLISH_URL) -> None:
         self._spanglish_url = url
 
@@ -30,7 +37,7 @@ class SpanglishClient:
             str: translated text
 
         Examples:
-           ```python
+            ```python
             >>> client.translate("hello world")
             'hola mundo'
             ```
@@ -88,7 +95,9 @@ class SpanglishClient:
     def __repr__(self) -> str:
         return type(self).__name__ + f"({self._spanglish_url})"
 
-    def _request(self, endpoint: str, payload: str) -> str | list[str]: # pragma: no cover
+    def _request(
+        self, endpoint: str, payload: str
+    ) -> str | list[str]:  # pragma: no cover
         """Internal method to deal with the requests.
 
         Args:

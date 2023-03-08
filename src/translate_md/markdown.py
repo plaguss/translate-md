@@ -10,7 +10,7 @@ md = MarkdownIt("zero")
 
 
 def read_file(filename: Path) -> str:
-    """Read a whole markdown file to a string."""
+    """Read a whole markdown file to a string, just a helper function. """
     with open(filename, "r") as f:
         return f.read()
 
@@ -22,16 +22,15 @@ class MarkdownProcessor:
     The expected format of the markdown file is the one used in hugo
     for blogging.
 
+    Args:
+        markdown_content (str):
+            The content of a markdown file as a string.
+
     Notes:
-        See https://gohugo.io/ for type of markdown files
+        See [gohugo](https://gohugo.io/) for type of markdown files
     """
 
     def __init__(self, markdown_content: str) -> None:
-        """
-        Args:
-            markdown_content (str):
-                The content of a markdown file as a string.
-        """
         self.md = MarkdownIt("zero")
         self._tokens = None
         self._positions = None
@@ -92,7 +91,7 @@ class MarkdownProcessor:
                 from get_pieces method.
 
         See Also:
-            get_pieces
+            [`get_pieces`](src.translate_md.markdown.MarkdownProcessor.write_to)
         """
         if len(self._positions) != len(texts):
             raise ValueError(
@@ -132,12 +131,13 @@ class MarkdownProcessor:
 def is_front_matter(text: str) -> bool:
     """Check if a token pertains to the front matter.
 
-    The check seeks if the string starts with --- and
+    The check seeks if the string starts with '---' and
     the word `title` after a single line jump (it will fail if some
-    space is inserted between them), and ends with ---.
+    space is inserted between them), and ends with '---'.
 
     Args:
-        text (str): Text to check.
+        text (str):
+            text obtained in the Token's content.
             Expects to be applied to the tokens from a markdown parsed.
 
     Returns:
@@ -153,10 +153,10 @@ def is_figure(text: str) -> bool:
     reason to translate those.
     i.e.
     '![helpner](/images/helpner-arch-part1.png)'
-    The check is not perfect, it just fits my needs.
+    The type of check is not perfect, it just fits my needs.
 
     Args:
-        text (str): text
+        text (str): text obtained in the Token's content.
 
     Returns:
         bool:
@@ -166,6 +166,14 @@ def is_figure(text: str) -> bool:
 
 
 def is_code(text: str) -> bool:
+    """Check if a blob of text is a chunk of code.
+
+    Args:
+        text (str): text obtained in the Token's content.
+
+    Returns:
+        bool
+    """
     text = text.strip()
     return text.startswith("```") and text.endswith("```")
 
