@@ -38,9 +38,13 @@ dev = [
     "mypy",
     "ruff"
 ]
+cli = [
+    "typer>=0.7.0",
+    "rich>=13.3.2"
+]
 
-# [project.scripts]
-# helpner = "translate_md.main:app"
+[project.scripts]
+translate-md = "translate_md.main:app"
 
 [project.urls]
 Source = "https://github.com/plaguss/translate-md"
