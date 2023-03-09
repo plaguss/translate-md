@@ -42,7 +42,7 @@ class SpanglishClient:
             'hola mundo'
             ```
         """
-        return self._request("/single", payload=text)
+        return self._request("/single", payload={"text": text})
 
     def translate_batch(self, texts: list[str]) -> list[str]:
         """Translates a batch of texts.
@@ -63,7 +63,7 @@ class SpanglishClient:
             ["hola", "mundo", "uno", "dos"]
             ```
         """
-        return json.loads(self._request("/batched", payload=json.dumps(texts)))
+        return json.loads(self._request("/batched", payload={"texts": json.dumps(texts)}))
 
     def translate_file(
         self, filename: Path, new_filename: Optional[Path] = None
@@ -112,7 +112,8 @@ class SpanglishClient:
         url = urljoin(self._spanglish_url, endpoint)
         with requests.Session() as session:
             logger.info(f"sending request to url: {url}")
-            response = session.request("GET", url, params={"text": payload})
+            response = session.request("GET", url, params=payload)
+            # response = session.request("GET", url, params={"text": payload})
             try:
                 return response.json()
             except Exception as exc:
