@@ -24,6 +24,7 @@ class SpanglishClient:
         url (str, optional):
             URL where the service is exposed. Defaults to SPANGLISH_URL.
     """
+
     def __init__(self, url: str = SPANGLISH_URL) -> None:
         self._spanglish_url = url
 
@@ -63,7 +64,9 @@ class SpanglishClient:
             ["hola", "mundo", "uno", "dos"]
             ```
         """
-        return json.loads(self._request("/batched", payload={"texts": json.dumps(texts)}))
+        return json.loads(
+            self._request("/batched", payload={"texts": json.dumps(texts)})
+        )
 
     def translate_file(
         self, filename: Path, new_filename: Optional[Path] = None
