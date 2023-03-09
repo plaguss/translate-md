@@ -76,7 +76,9 @@ class SpanglishClient:
         Args:
             filename (Path): Path to the markdown file.
             new_filename (Optional[Path], optional):
-                New filename to write the contents back. Defaults to None.
+                Filename for the new markdown file to be generated.
+                Defaults to None, in which case it is generated
+                internally.
         """
         logger.info("reading file")
         md_content = md.read_file(filename)
