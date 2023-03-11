@@ -1,9 +1,11 @@
 """Command Line Application for translate-md. """
 
-import typer
-from typing import Optional
 from pathlib import Path
+from typing import Optional
+
+import typer
 from rich.progress import Progress
+
 from .client import SpanglishClient
 
 app = typer.Typer()
@@ -17,7 +19,7 @@ def main(
         help="Filename for the new markdown file to be generated. If not given, "
         "it is generated internally.",
     ),
-):
+):  # pragma: no cover
     """CLI for SpanglishClient, translate markdown files
     from the console.
     """
