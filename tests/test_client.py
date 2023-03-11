@@ -4,6 +4,7 @@ import tempfile
 from pathlib import Path
 from translate_md import client
 import json
+import pytest
 
 filename = (
     Path(__file__).parent
@@ -40,11 +41,21 @@ class TestClient:
         )
         assert spanglish_client.translate_batch(["text one", "text two"]) == ["texto uno", "texto dos"]
 
+
+    def test_translate_batch_error(self, mocker):
+        mocker.patch(
+            "translate_md.client.SpanglishClient._request",
+            return_value="['one text', 'one err'"
+        )
+        with pytest.raises(ValueError):
+            assert spanglish_client.translate_batch(["text one", "text two"]) == ["texto uno", "texto dos"]
+
+
     def test_translate_file(self, mocker):
         translation = ["hola"] * 16  # The number of pieces the file contains once processed
         mocker.patch(
-            "translate_md.client.SpanglishClient._request",
-            return_value=json.dumps(translation)
+            "translate_md.client.SpanglishClient._multi_request",
+            return_value=translation
         )
         with tempfile.TemporaryDirectory() as tmp:
             spanglish_client.translate_file(filename)
