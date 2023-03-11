@@ -64,9 +64,14 @@ class SpanglishClient:
             ["hola", "mundo", "uno", "dos"]
             ```
         """
-        return json.loads(
-            self._request("/batched", payload={"texts": json.dumps(texts)})
-        )
+        result = self._request("/batched", payload={"texts": json.dumps(texts)})
+
+        try:
+            return json.loads(result)
+        except json.decoder.JSONDecodeError as e:
+            # There are some errors when retrieving a batch of texts.
+            # The service returns a list of texts
+            raise ValueError(f"Couldn't load the json encoded list: {result}") from e
 
     def translate_file(
         self, filename: Path, new_filename: Optional[Path] = None
@@ -89,7 +94,7 @@ class SpanglishClient:
         pieces = mdproc.get_pieces()
         # TODO: Check if the file is big (say more than 5000 characters)
         # and send the content in pieces.
-        translated_text = self.translate_batch(pieces)
+        translated_text = self._multi_request("/single", pieces)
         logger.info("updating content")
         mdproc.update(translated_text)
         if new_filename is None:
@@ -116,8 +121,36 @@ class SpanglishClient:
         with requests.Session() as session:
             logger.info(f"sending request to url: {url}")
             response = session.request("GET", url, params=payload)
-            # response = session.request("GET", url, params={"text": payload})
             try:
                 return response.json()
+            except Exception as exc:
+                logger.error("Error parsing a request to json")
+                raise ValueError("Unexpected error on the response") from exc
+
+    def _multi_request(
+        self, endpoint: str, texts: list[str]
+    ) -> list[str]:  # pragma: no cover
+        """Internal method to deal with the requests.
+
+        Args:
+            endpoint (str): Endpoint of the app (`/single` or `/batched`)
+            payload (str): The parameter values of the endpoint.
+
+        Returns:
+            str | list[str]: API response.
+
+        Note:
+            This method shouldn't be necessary, but there appear some errors
+            translating markown texts with multiple headings or a high number
+            of symbols through the `/batched` endpoint. For the time being,
+            this would do the trick. Let a single method which uses
+            properly a ThreadPoolExecutor for multiple requests.
+        """
+        url = urljoin(self._spanglish_url, endpoint)
+        with requests.Session() as session:
+            logger.info(f"sending requests to url: {url}")
+            responses = [session.request("GET", url, params={"text": t}) for t in texts]
+            try:
+                return [r.json() for r in responses]
             except Exception as exc:
                 raise ValueError("Unexpected error on the response") from exc
