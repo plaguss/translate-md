@@ -29,9 +29,22 @@ This client depends on a service which is currently expected tu run locally. You
 
 You will need [spanglish](https://github.com/plaguss/spanglish) running in order to start working. The easiest way is to clone the repo and use docker for it. Get the service up you should be ready to go.
 
+### CLI version
+
+It may be convenient for some cases, so the library comes with a CLI with a subset of the functionality:
+
+```console
+pip install translate-md[cli]
+```
+
+Or maybe better with pipx
+
+```console
+pipx install translate-md[cli]
+```
+
+Visit the docs for further information.
+
 ## 📝 Documentation
 
-TBD
-
 The [documentation](https://plaguss.github.io/translate-md/) is made with [Material for MkDocs](https://github.com/squidfunk/mkdocs-material) and is hosted by [GitHub Pages](https://docs.github.com/en/pages).
-
