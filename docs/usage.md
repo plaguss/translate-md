@@ -132,3 +132,42 @@ proc.write_to(new_filename)
 Thats it!
 
 For the moment, there is no cleaning of the markdown content before being sent to the translator, which can create some errors with the content you are getting back with the formatting. The output file obtained should be treated as a draft.
+
+The following two tables 
+
+<table>
+  <tr>
+    <th>English version</th>
+    <th>Versión en castellano</th>
+  </tr>
+    <td>
+         <figure>
+            <img src="../assets/post-example-screenshot.png" alt="post-example-screenshot" style="width:100%">
+            <figcaption>post-example-screenshot</figcaption>
+        </figure> 
+    </td>
+    <td>
+         <figure>
+            <img src="../assets/post-example-screenshot.es.png" alt="post-example-screenshot.es" style="width:100%">
+            <figcaption>post-example-screenshot.es</figcaption>
+        </figure> 
+    </td>
+</table>
+
+*The images may be slow, in case you want to see them they are placed under under the `tests/data` folder.*
+
+<!-- 
+Prefer the table with the content side by side
+
+![post-example-screenshot](./assets/post-example-screenshot.png)
+
+and the corresponding output:
+
+![post-example-screenshot.es](./assets/post-example-screenshot.es.png) -->
+
+
+
+<!-- EXPLICAR QUE SE VE
+
+Some errors happen  -->
+

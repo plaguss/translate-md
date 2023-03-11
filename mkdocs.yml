@@ -1,6 +1,7 @@
 site_name: translate-md
 site_description: Python client to translate markdown files from english to spanish.
 site_url: https://plaguss.github.io/translate-md
+use_directory_urls: true
 
 theme:
   name: "material"
