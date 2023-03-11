@@ -43,7 +43,7 @@ CONFIG = {
 logging.config.dictConfig(CONFIG)
 
 
-def get_logger(name: str = None) -> logging.Logger:
+def get_logger(name: str = "client") -> logging.Logger:
     """Get the logger for the client.
 
     Its intended for internal use.
