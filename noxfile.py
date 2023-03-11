@@ -35,7 +35,7 @@ def lint(session):
 def typecheck(session):
     session.install("mypy")
     install_dev_requirements(session, filename="linting.txt")
-    session.run("mypy", "-p", SOURCE, "--no-incremental")
+    session.run("mypy", "-p", "src", "--no-incremental")
 
 
 @nox.session(reuse_venv=True)
