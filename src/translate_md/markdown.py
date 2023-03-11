@@ -10,7 +10,7 @@ md = MarkdownIt("zero")
 
 
 def read_file(filename: Path) -> str:
-    """Read a whole markdown file to a string, just a helper function. """
+    """Read a whole markdown file to a string, just a helper function."""
     with open(filename, "r") as f:
         return f.read()
 
