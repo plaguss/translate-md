@@ -2,15 +2,22 @@
 
 This section shows a guided example using the CLI and the python API.
 
-First of all, make sure that the [spanglish](https://github.com/plaguss/spanglish) service is up and running (take a look to the guide if you haven't done it yet). Using docker compose, un a separate window run `docker compose up`.
+First of all, make sure that the [spanglish](https://github.com/plaguss/spanglish) service is up and running (take a look to the guide if you haven't done it yet). Using docker compose, un a separate window run `docker compose up`, or docker directly if prefered (just use the [`run.sh`](https://github.com/plaguss/spanglish/run.sh) file).
 
 ## CLI
 
 For convenience, a command line app can be installed, with the functionality just to translate a markdown file for the moment (check the README file for the installation instructions):
 
+```console
+$ translate-md tests/data/post-example.md
+```
+
+By default a new file will be created at `tests/data/post-example.es.md`, otherwise use `--new-filename` to give a different name.
+
 
 ## Python API
 
+Lets see a tour of the Python API.
 
 ### Instantiate the client
 
@@ -131,9 +138,12 @@ proc.write_to(new_filename)
 
 Thats it!
 
-For the moment, there is no cleaning of the markdown content before being sent to the translator, which can create some errors with the content you are getting back with the formatting. The output file obtained should be treated as a draft.
 
-The following two tables 
+### A note on the expected behavior
+
+For the moment, there is no cleaning of the markdown content before being sent to the translator, which can create some errors with the content obtained. **The output file obtained should be treated as a draft**.
+
+The following table shows a comparison of the input file (left) and the output (right):
 
 <table>
   <tr>
@@ -154,7 +164,10 @@ The following two tables
     </td>
 </table>
 
-*The images may be slow, in case you want to see them they are placed under under the `tests/data` folder.*
+*The images may be small, in case you want to see them they are placed under under the [`tests/data`](https://github.com/plaguss/translate-md/tree/main/tests/data) folder.*
+
+We can see the text paragraphs translated (the *front-matter*, *comments*, *code blocks* and *figures* (only when written as a separate paragraph)), with the remaining content untouched. Some errors are yet to be treated, like keeping the lists with the appropriate format.
+
 
 <!-- 
 Prefer the table with the content side by side
@@ -164,10 +177,4 @@ Prefer the table with the content side by side
 and the corresponding output:
 
 ![post-example-screenshot.es](./assets/post-example-screenshot.es.png) -->
-
-
-
-<!-- EXPLICAR QUE SE VE
-
-Some errors happen  -->
 
