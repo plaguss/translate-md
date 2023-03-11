@@ -143,7 +143,7 @@ def is_front_matter(text: str) -> bool:
     Returns:
         bool
     """
-    return text.startswith("---\ntitle") and text.endswith("---")
+    return text.startswith("---\n") and text.endswith("\n---")
 
 
 def is_figure(text: str) -> bool:
