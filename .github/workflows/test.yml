@@ -28,10 +28,10 @@ jobs:
         python -m pip install --upgrade pip
         pip install nox
 
-      - uses: codecov/codecov-action@v3
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          file: ./coverage.xml
+    - uses: codecov/codecov-action@v3
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        file: ./coverage.xml
 
   lint:
     runs-on: ubuntu-latest
