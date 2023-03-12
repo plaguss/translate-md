@@ -47,3 +47,15 @@ def format(session):
     session.install("black", "ruff")
     session.run("ruff", SOURCE, "--fix")
     session.run("black", SOURCE)
+
+
+@nox.session
+def build(session):
+    session.install("hatch")
+    session.run("hatch", "build")
+
+
+@nox.session
+def publish(session):
+    session.notify("build")
+    session.run("hatch", "publish")
