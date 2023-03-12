@@ -105,9 +105,13 @@ class SpanglishClient:
     def __repr__(self) -> str:
         return type(self).__name__ + f"({self._spanglish_url})"
 
+    # fmt: off
     def _request(
-        self, endpoint: str, payload: str
-    ) -> str | list[str]:  # pragma: no cover
+        self,
+        endpoint: str,
+        payload: dict[str, str]
+    ) -> str:  # pragma: no cover
+    # fmt: on
         """Internal method to deal with the requests.
 
         Args:
@@ -115,7 +119,7 @@ class SpanglishClient:
             payload (str): The parameter values of the endpoint.
 
         Returns:
-            str | list[str]: API response.
+            str: API response.
         """
         url = urljoin(self._spanglish_url, endpoint)
         with requests.Session() as session:

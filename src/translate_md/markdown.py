@@ -1,7 +1,8 @@
 """Markdown related facilities. """
 
 from pathlib import Path
-from typing import Optional
+from typing import Any, Mapping, MutableMapping
+
 from markdown_it import MarkdownIt
 from markdown_it.token import Token
 from mdformat.renderer import MDRenderer
@@ -98,7 +99,9 @@ class MarkdownProcessor:
         for i, t in zip(self._positions, texts):
             self._tokens[i].content = t
             # Not clear why it should be changed the children yet, but...
-            self._tokens[i].children[0].content = t
+            self._tokens[i].children[0].content = t  # type: ignore
+            # The previous type is ignored because we only deal with inline tokens here,
+            # which in fact contain children
 
     def render(self) -> str:
         """Get a new markdown file with the paragraphs translated.
@@ -107,7 +110,9 @@ class MarkdownProcessor:
             texts (list[str]): List of texts to insert back to the
             document translated.
         """
-        options, env = {}, {}  # dummy variables
+        # dummy variables for render
+        options: Mapping[str, Any] = {}
+        env: MutableMapping = {}
         renderer = MDRenderer()
         output_markdown = renderer.render(self.tokens, options, env)
         # mdformat adds some extra \, remove it before writing the content back.
