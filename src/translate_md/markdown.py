@@ -1,7 +1,7 @@
 """Markdown related facilities. """
 
 from pathlib import Path
-
+from typing import Optional
 from markdown_it import MarkdownIt
 from markdown_it.token import Token
 from mdformat.renderer import MDRenderer
@@ -32,8 +32,8 @@ class MarkdownProcessor:
 
     def __init__(self, markdown_content: str) -> None:
         self.md = MarkdownIt("zero")
-        self._tokens = None
-        self._positions = None
+        self._tokens: Optional[list[Token]] = None
+        self._positions: Optional[list[int]] = None
         self._content = markdown_content
 
     @property
@@ -41,8 +41,6 @@ class MarkdownProcessor:
         """Parsed pieces of the markdown file.
         The content will be extracted from these pieces, updated and
         created back.
-        TODO
-        The setter method deals with updating the appropriate positions.
         """
         if self._tokens is None:
             self._tokens = self.md.parse(self._content)
