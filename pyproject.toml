@@ -52,6 +52,15 @@ Source = "https://github.com/plaguss/translate-md"
 [tool.hatch.version]
 path = "src/translate_md/__init__.py"
 
+[tool.hatch.build.targets.sdist]
+exclude = [
+  "/.github",
+  "/docs",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/translate_md"]
+
 [tool.pytest]
 addopts = [
     "--cov=src/translate_md",
