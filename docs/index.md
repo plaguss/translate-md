@@ -11,7 +11,8 @@ Python client to [spanglish](https://github.com/plaguss/spanglish), *and a bit m
 
 ---
 
-> This project was developed for my personal use: translating markdown files from my blog posts. It may be useful for somebody (I would be honored to listen to that), but is not the target necessarily.
+
+> This project was developed for my personal use: translating markdown files from my blog posts. It may be useful for somebody (I would be honored to listen to that), but please don't expect everything correct to the detail.
 
 Anyway, the API is not expected to change unless some extra feature is required. Contributions are welcome!
 
