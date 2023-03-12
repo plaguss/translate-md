@@ -19,7 +19,7 @@ def test_read_file():
     assert isinstance(content, str)
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture
 def mdprocessor():
     return md.MarkdownProcessor(md.read_file(filename))
 
@@ -38,15 +38,15 @@ class TestMarkdownProcessor:
         assert len(mdproc.get_pieces()) == 16
         assert all([isinstance(p, str) and len(p) > 0 for p in mdproc.get_pieces()])
 
-    def test_update(self):
-        pieces = mdproc.get_pieces()
+    def test_update(self, mdprocessor):
+        pieces = mdprocessor.get_pieces()
         with pytest.raises(ValueError):
-            mdproc.update(["wrong length"])
+            mdprocessor.update(["wrong length"])
         new_pieces = [""] * len(pieces)
         new_pieces[0] = "texto traducido"
-        mdproc.update(new_pieces)
-        assert mdproc.tokens[mdproc._positions[0]].content == "texto traducido"
-        assert all([mdproc._tokens[p].content == "" for p in mdproc._positions[1:]])
+        mdprocessor.update(new_pieces)
+        assert mdprocessor.tokens[mdprocessor._positions[0]].content == "texto traducido"
+        assert all([mdprocessor._tokens[p].content == "" for p in mdprocessor._positions[1:]])
 
     def test_render(self, mdprocessor):
         # Update with silly content
