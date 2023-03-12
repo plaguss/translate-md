@@ -1,3 +1,0 @@
--r ./docs.txt
--r ./lint.txt
--r ./test.txt
