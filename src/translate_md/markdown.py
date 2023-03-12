@@ -32,8 +32,8 @@ class MarkdownProcessor:
 
     def __init__(self, markdown_content: str) -> None:
         self.md = MarkdownIt("zero")
-        self._tokens: Optional[list[Token]] = None
-        self._positions: Optional[list[int]] = None
+        self._tokens: list[Token] = []
+        self._positions: list[int] = []
         self._content = markdown_content
 
     @property
@@ -42,7 +42,7 @@ class MarkdownProcessor:
         The content will be extracted from these pieces, updated and
         created back.
         """
-        if self._tokens is None:
+        if len(self._tokens) == 0:
             self._tokens = self.md.parse(self._content)
         return self._tokens
 
@@ -59,7 +59,6 @@ class MarkdownProcessor:
         Internally stores the position of the corresponding tokens
         for later use.
         """
-        self._positions = []
         pieces = []
         for i, t in enumerate(self.tokens):
             if t.type == "inline":
