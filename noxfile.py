@@ -6,8 +6,12 @@ SOURCE = "src/translate_md"
 def install_dev_requirements(session, filename="all.txt"):
     session.run("pip", "install", "-r", f"requirements/{filename}")
 
-def install(session):
-    session.run("pip", "install", ".")
+def install(session, cli=False):
+    if not cli:
+        session.run("pip", "install", ".")
+    else:
+        session.run("pip", "install", ".[cli]")
+
 
 @nox.session
 def coverage(session):
@@ -33,8 +37,8 @@ def lint(session):
 
 @nox.session
 def typecheck(session):
-    session.install("mypy")
-    install_dev_requirements(session, filename="linting.txt")
+    install_dev_requirements(session, filename="all.txt")
+    install(session, cli=True)
     session.run("mypy", "-p", "src", "--no-incremental")
 
 
