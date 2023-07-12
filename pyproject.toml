@@ -11,7 +11,8 @@ authors = [
 dependencies = [
     "mdformat>=0.7.16",
     "markdown-it-py>=2.2.0",
-    "requests>=2.28.2"
+    "requests>=2.28.2",
+    "nltk>=3.8.1"
 ]
 license = {file = "LICENSE"}
 classifiers = [
