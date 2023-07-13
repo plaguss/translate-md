@@ -5,6 +5,7 @@ from pathlib import Path
 from translate_md import markdown as md
 import tempfile
 import textwrap
+from collections import Counter
 
 
 filename = (
@@ -234,8 +235,7 @@ class TestPiece:
     @pytest.fixture(scope="class")
     def badge(self):
         return textwrap.dedent(
-            """
-        [![Supported Python Versions](https://img.shields.io/pypi/pyversions/rich/13.2.0)](https://pypi.org/project/rich/) [![PyPI version](https://badge.fury.io/py/rich.svg)](https://badge.fury.io/py/rich)        """
+            """[![Supported Python Versions](https://img.shields.io/pypi/pyversions/rich/13.2.0)](https://pypi.org/project/rich/) [![PyPI version](https://badge.fury.io/py/rich.svg)](https://badge.fury.io/py/rich)        """
         )
 
     @pytest.fixture(scope="class")
@@ -243,6 +243,13 @@ class TestPiece:
         return textwrap.dedent(
             """
         For a video introduction to Rich see [calmcode.io](https://calmcode.io/rich/introduction.html) by [@fishnets88](https://twitter.com/fishnets88)."""
+        )
+
+    @pytest.fixture(scope="class")
+    def long_paragraph(self):
+        return textwrap.dedent(
+            """
+        Rich works with Linux, OSX, and Windows. True color / emoji works with new Windows Terminal, classic terminal is limited to 16 colors. Rich requires Python 3.7 or later."""
         )
 
     @pytest.fixture(scope="class")
@@ -255,5 +262,18 @@ class TestPiece:
 
     def test_piece_badge(self, badge):
         piece = md.Piece(badge, 0)
-        assert piece.section_header is True
-        assert badge == 1
+        assert piece.position == 0
+        assert piece._is_processed is False
+        piece.process()
+        assert piece._is_processed is True
+        assert piece.is_header is False
+        assert len(piece.sentences) == 1
+        assert len(piece._replaced) == 2
+
+    def test_piece_paragraph_with_links(self, paragraph_with_links):
+        piece = md.Piece(paragraph_with_links, 0)
+        sentences = piece.process()
+        assert len(sentences) == 1
+        assert len(piece._replaced) == 2
+        ctr = Counter(sentences[0].replace(".", "").split(" "))
+        assert ctr[md.PLACEHOLDER_MDLINK] == 2
