@@ -231,6 +231,16 @@ class TestMarkdownProcessorNew:
     #         assert len(md.read_file(Path(tmp) / "testfile.md")) == 1615
 
 
+def test_insert_links():
+    t1 = textwrap.dedent(
+            """For a video introduction to Rich see [calmcode.io](https://calmcode.io/rich/introduction.html) by [@fishnets88](https://twitter.com/fishnets88)."""
+        )
+    content, replaced = md.replace_links(t1)
+    assert content == f"""For a video introduction to Rich see {md.PLACEHOLDER_MDLINK} by {md.PLACEHOLDER_MDLINK}."""
+    text = md.insert_links(content, replaced)
+    assert text == t1
+
+
 class TestPiece:
     @pytest.fixture(scope="class")
     def badge(self):
@@ -277,3 +287,32 @@ class TestPiece:
         assert len(piece._replaced) == 2
         ctr = Counter(sentences[0].replace(".", "").split(" "))
         assert ctr[md.PLACEHOLDER_MDLINK] == 2
+
+    def test_long_paragraph(self, long_paragraph):
+        piece = md.Piece(long_paragraph, 0)
+        sentences = piece.process()
+        assert len(sentences) == 3
+        assert len(piece._replaced) == 0
+
+    def test_section(self, section):
+        piece = md.Piece(section, 0)
+        sentences = piece.process()
+        assert len(sentences) == 1
+        assert piece.is_header is True
+        assert piece.headings == "##"
+        assert sentences[0] == "Compatibility"
+        # Try to build it back after translating the content
+        rebuilt = piece.rebuild(["Compatibilidad"])
+        assert rebuilt == "## Compatibilidad"
+
+    def test_section_heading(self, section_heading):
+        piece = md.Piece(section_heading, 0)
+        sentences = piece.process()
+        assert len(sentences) == 1
+        assert piece.is_header is True
+        assert piece.headings == "##"
+        assert sentences[0] == md.PLACEHOLDER_MDLINK
+        rebuilt = piece.rebuild([md.PLACEHOLDER_MDLINK])
+        assert rebuilt == section_heading
+
+
