@@ -337,17 +337,16 @@ class Piece:
             # We have to check if it contained any link
             text = translation[0]
             if len(self._replaced) > 0:
+                # If thats the case, replace it and return the new heading
                 text = insert_links(text, self._replaced)
             return self.headings + " " + text
 
-        new_content = []
-        for sent, replaced in zip(translation, self._replaced):
-            for link in replaced:
-                sent = sent.replace(PLACEHOLDER_MDLINK, link)
-            new_content.append(sent)
-
-        # TODO: Insert the links in case there are any
-        return ". ".join(new_content)
+        # Join with whitespace, nltk is suposed to keep the points after
+        # tokenizing a paragraph.
+        new_content = " ".join(translation)
+        # Insert the links in case there are any
+        new_content = insert_links(new_content, self._replaced)
+        return new_content
 
 
 def insert_links(text: str, links: list[str]) -> str:
