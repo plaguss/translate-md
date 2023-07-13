@@ -231,6 +231,7 @@ PATTERN_MDLINK = re.compile(f"({_pat_mdlink})")
 PATTERN_MDLINK_FIGURE = re.compile(f"({_pat_figure})")
 PATTERN_MDLINK_BADGE = re.compile(f"(\[{_pat_figure}\]{_pat_destination})")
 PATTERN_HEADINGS = re.compile("(#{0,6}).*?")
+PATTERN_HEADINGS = re.compile("(#{0,6})\s+")
 # Text to replace
 PLACEHOLDER_MDLINK = "-MDLINK-"
 
@@ -303,7 +304,11 @@ class Piece:
         if self.content.lstrip().startswith("#"):
             self.is_header = True
             # TODO: A section heading can also be a link, check for it
-            self.headings = re.findall(PATTERN_HEADINGS, self.content.lstrip()).lstrip()
+            self.headings = re.findall(PATTERN_HEADINGS, self.content.lstrip())[0]
+            # Replace the headings with spaces to obtain just the text.
+            # Some models to translate text remove the the headings
+            # and the information could be lost.
+            self.content = self.content.replace(self.headings, "").lstrip()
             # TODO: If its a link, should we stop here?
 
         (content, replaced) = replace_links(self.content)
@@ -323,9 +328,17 @@ class Piece:
         pass
 
     def rebuild(self, translation: list[str]) -> str:
-        """Rebuilds back the content to be a string like it was originally."""
+        """Rebuilds back the content to be a string like it was originally.
+        
+        - In case of a header this means adding the (first) translated sentence
+        inserted to the previously obtained headings. 
+        """
         if self.is_header:
-            return self.headings + " " + translation[0]
+            # We have to check if it contained any link
+            text = translation[0]
+            if len(self._replaced) > 0:
+                text = insert_links(text, self._replaced)
+            return self.headings + " " + text
 
         new_content = []
         for sent, replaced in zip(translation, self._replaced):
@@ -335,3 +348,20 @@ class Piece:
 
         # TODO: Insert the links in case there are any
         return ". ".join(new_content)
+
+
+def insert_links(text: str, links: list[str]) -> str:
+    """Function to replace back the links in the placeholders of the text.
+
+    Replaces the placeholders one at a time.
+
+    Args:
+        text (str): Text with placeholders.
+        links (list[str]): Links to insert in the placeholders.
+
+    Returns:
+        str: text with the links inserted back.
+    """
+    for link in links:
+        text = re.sub(PLACEHOLDER_MDLINK, link, text, count=1)
+    return text
