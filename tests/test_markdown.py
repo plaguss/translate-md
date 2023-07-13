@@ -243,34 +243,13 @@ def test_insert_links():
 
 class TestPiece:
     @pytest.fixture(scope="class")
-    def badge(self):
-        return textwrap.dedent(
-            """[![Supported Python Versions](https://img.shields.io/pypi/pyversions/rich/13.2.0)](https://pypi.org/project/rich/) [![PyPI version](https://badge.fury.io/py/rich.svg)](https://badge.fury.io/py/rich)        """
-        )
-
-    @pytest.fixture(scope="class")
-    def paragraph_with_links(self):
-        return textwrap.dedent(
-            """
-        For a video introduction to Rich see [calmcode.io](https://calmcode.io/rich/introduction.html) by [@fishnets88](https://twitter.com/fishnets88)."""
-        )
-
-    @pytest.fixture(scope="class")
-    def long_paragraph(self):
-        return textwrap.dedent(
-            """
-        Rich works with Linux, OSX, and Windows. True color / emoji works with new Windows Terminal, classic terminal is limited to 16 colors. Rich requires Python 3.7 or later."""
-        )
-
-    @pytest.fixture(scope="class")
-    def section(self):
-        return "## Compatibility"
-
-    @pytest.fixture(scope="class")
     def section_heading(self):
         return "## [Documentation](https://readthedocs.io)"
 
-    def test_piece_badge(self, badge):
+    def test_piece_badge(self):
+        badge = textwrap.dedent(
+            """[![Supported Python Versions](https://img.shields.io/pypi/pyversions/rich/13.2.0)](https://pypi.org/project/rich/) [![PyPI version](https://badge.fury.io/py/rich.svg)](https://badge.fury.io/py/rich)        """
+        )
         piece = md.Piece(badge, 0)
         assert piece.position == 0
         assert piece._is_processed is False
@@ -280,7 +259,10 @@ class TestPiece:
         assert len(piece.sentences) == 1
         assert len(piece._replaced) == 2
 
-    def test_piece_paragraph_with_links(self, paragraph_with_links):
+    def test_piece_paragraph_with_links(self):
+        paragraph_with_links = textwrap.dedent(
+            """For a video introduction to Rich see [calmcode.io](https://calmcode.io/rich/introduction.html) by [@fishnets88](https://twitter.com/fishnets88)."""
+        )
         piece = md.Piece(paragraph_with_links, 0)
         sentences = piece.process()
         assert len(sentences) == 1
@@ -288,13 +270,17 @@ class TestPiece:
         ctr = Counter(sentences[0].replace(".", "").split(" "))
         assert ctr[md.PLACEHOLDER_MDLINK] == 2
 
-    def test_long_paragraph(self, long_paragraph):
+    def test_long_paragraph(self):
+        long_paragraph = textwrap.dedent(
+            """Rich works with Linux, OSX, and Windows. True color / emoji works with new Windows Terminal, classic terminal is limited to 16 colors. Rich requires Python 3.7 or later."""
+        )
         piece = md.Piece(long_paragraph, 0)
         sentences = piece.process()
         assert len(sentences) == 3
         assert len(piece._replaced) == 0
 
-    def test_section(self, section):
+    def test_section(self):
+        section = "## Compatibility"
         piece = md.Piece(section, 0)
         sentences = piece.process()
         assert len(sentences) == 1
@@ -305,7 +291,8 @@ class TestPiece:
         rebuilt = piece.rebuild(["Compatibilidad"])
         assert rebuilt == "## Compatibilidad"
 
-    def test_section_heading(self, section_heading):
+    def test_section_heading(self):
+        section_heading = "## [Documentation](https://readthedocs.io)"
         piece = md.Piece(section_heading, 0)
         sentences = piece.process()
         assert len(sentences) == 1
@@ -315,4 +302,12 @@ class TestPiece:
         rebuilt = piece.rebuild([md.PLACEHOLDER_MDLINK])
         assert rebuilt == section_heading
 
-
+    def test_two_sentences_with_link(self):
+        two_sentences_with_link = "For more control over rich terminal content. Import and construct a [Console](https://rich.readthedocs.io/en/latest/reference/console.html#rich.console.Console) object."
+        piece = md.Piece(two_sentences_with_link, 0)
+        sentences = piece.process()
+        assert len(sentences) == 2
+        assert len(piece._replaced) == 1
+        assert md.PLACEHOLDER_MDLINK in sentences[1]
+        rebuilt = piece.rebuild(sentences)
+        assert rebuilt == two_sentences_with_link
