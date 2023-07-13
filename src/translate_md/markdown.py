@@ -2,7 +2,7 @@
 
 import re
 from copy import deepcopy
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Literal, Mapping, MutableMapping
 
@@ -277,30 +277,39 @@ class Piece:
 
     content: str
     position: int
-    sentences: list[str] = []
+    sentences: list[str] = field(default_factory=list)
     is_header: bool = False
     headings: str = ""
-    translation: str = ""
-    _replaced: list[list[str]] = []
+    _replaced: list[str] = field(default_factory=list)
     _is_processed: bool = False
 
     def process(self) -> list[str]:
+        """Processes the piece of markdown to prepare the information
+        as we need it.
+
+        - Checks if its a heading and update accordingly.
+        - Replace the possible links at the paragraph level, they will be
+        inserted back after the translation is done per sentence, and the
+        content joined again.
+        - Tokenize the paragraph into sentences to be translated and return
+        them.
+
+        Returns:
+            list[str]: sentences with the content to be translated.
+        """
         if self._is_processed:
-            return
+            return self.sentences
 
         if self.content.lstrip().startswith("#"):
             self.is_header = True
             # TODO: A section heading can also be a link, check for it
             self.headings = re.findall(PATTERN_HEADINGS, self.content.lstrip()).lstrip()
+            # TODO: If its a link, should we stop here?
 
-        sentences_ = nltk.sent_tokenize(self.content)
-        replaced_per_paragraph = []
-        for sentence in sentences_:
-            (sentence, replaced) = replace_links(sentence)
-            replaced_per_paragraph.append(replaced)
-            self.sentences.append(sentence)
+        (content, replaced) = replace_links(self.content)
+        self._replaced = replaced
+        self.sentences = nltk.sent_tokenize(content)
 
-        self._replaced.append(replaced_per_paragraph)
         # In case its called more than once, avoid reprocessing.
         self._is_processed = True
         return self.sentences
