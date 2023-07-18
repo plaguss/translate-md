@@ -10,8 +10,7 @@ import nltk
 from markdown_it import MarkdownIt
 from markdown_it.token import Token
 from mdformat.renderer import MDRenderer
-
-md = MarkdownIt("zero")
+from warnings import warn
 
 
 ParserName = Literal["zero", "commonmark", "js-default", "gfm-like"]
@@ -21,149 +20,6 @@ def read_file(filename: Path) -> str:
     """Read a whole markdown file to a string, just a helper function."""
     with open(filename, "r") as f:
         return f.read()
-
-
-class MarkdownProcessor:
-    """Class that allows to work with a markdown file, extracting
-    the text content to be translated.
-
-    The expected format of the markdown file is the one used in hugo
-    for blogging.
-
-    Args:
-        markdown_content (str):
-            The content of a markdown file as a string.
-
-    Notes:
-        See [gohugo](https://gohugo.io/) for type of markdown files
-    """
-
-    def __init__(self, markdown_content: str, parser_name: ParserName = "zero") -> None:
-        self.md = MarkdownIt(parser_name)
-        self._tokens: list[Token] = []
-        self._positions: list[int] = []
-        self._content = markdown_content
-        # Stores the links that may be captured when extracting the
-        # pieces of the markdown.
-        # List of paragraphs, containing a list of sentences, with maybe
-        # a list of links.
-        self._replaced: list[list[list[str]]] = []
-
-    @property
-    def tokens(self) -> list[Token]:
-        """Parsed pieces of the markdown file.
-        The content will be extracted from these pieces, updated and
-        created back.
-        """
-        if len(self._tokens) == 0:
-            self._tokens = self.md.parse(self._content)
-        return self._tokens
-
-    def __repr__(self) -> str:
-        return type(self).__name__ + f"({len(self.tokens)})"
-
-    # def get_pieces(self) -> list[list[str]]:
-    def get_pieces(self) -> list[str]:
-        """Gets the pieces of the markdown file to be translated.
-
-        The relevant pieces are those tokens considered of type
-        'inline' and which aren't the front matter, a figure, code
-        or markdown comments.
-
-        Internally stores the position of the corresponding tokens
-        for later use.
-        """
-        pieces = []
-        for i, t in enumerate(self.tokens):
-            if t.type == "inline":
-                if any(
-                    (
-                        is_front_matter(t.content),
-                        is_figure(t.content),
-                        is_code(t.content),
-                        is_comment(t.content),
-                    )
-                ):
-                    continue
-                # TODO: Check for markup in the tokens.
-                # If contains at least one #, store the content and
-                # the markup to recreate the section name.
-                if t.content.startswith("#"):
-                    # TODO: Parse the sections as independent elements
-                    print((i, t.content))
-
-                # Split the paragraphs on phrases
-                sentences_ = nltk.sent_tokenize(t.content)
-                sentences = []
-                replaced_per_paragraph = []
-                for sentence in sentences_:
-                    (sentence, replaced) = replace_links(sentence)
-                    replaced_per_paragraph.append(replaced)
-                    sentences.append(sentence)
-
-                self._replaced.append(replaced_per_paragraph)
-
-                pieces.append(sentences)
-                # TODO: Detect links, store separated and insert a placeholder.
-                # pieces.append(t.content)
-                self._positions.append(i)
-        return pieces
-
-    def _replace_links(self):
-        pass
-
-    def update(self, texts: list[str]) -> None:
-        """Update the content with the translated pieces.
-
-        Args:
-            texts (list[str]): List of texts to insert back to the
-            document translated.
-
-        Raises:
-            ValueError: If the number of texts to update
-                don't match the number of texts obtained
-                from get_pieces method.
-
-        See Also:
-            [`get_pieces`](src.translate_md.markdown.MarkdownProcessor.write_to)
-        """
-        if len(self._positions) != len(texts):
-            raise ValueError(
-                "There should be the same number of texts that you obtained from "
-                f"get_pieces: positions: {len(self._positions)}, texts: {len(texts)}"
-            )
-        for i, t in zip(self._positions, texts):
-            self._tokens[i].content = t
-            # Not clear why it should be changed the children yet, but...
-            self._tokens[i].children[0].content = t  # type: ignore
-            # The previous type is ignored because we only deal with inline tokens here,
-            # which in fact contain children
-
-    def render(self) -> str:
-        """Get a new markdown file with the paragraphs translated.
-
-        Args:
-            texts (list[str]): List of texts to insert back to the
-            document translated.
-        """
-        # dummy variables for render
-        options: Mapping[str, Any] = {}
-        env: MutableMapping = {}
-        renderer = MDRenderer()
-        output_markdown = renderer.render(self.tokens, options, env)
-        # mdformat adds some extra \, remove it before writing the content back.
-        output_markdown = output_markdown.replace("\\", "")
-        return output_markdown
-
-    def write_to(self, filename: Path) -> None:
-        """Write the content of the updated markdown to disk.
-
-        Args:
-            filename (Path): Name of the new file.
-        """
-        translated_file = self.render()
-        with open(filename, "w") as f:
-            f.write(translated_file)
 
 
 def is_front_matter(text: str) -> bool:
@@ -222,16 +78,16 @@ def is_comment(text: str) -> bool:
 
 
 # Regular expressions pattern to find links, images and badges.
-_pat_placeholder = "\[.*?\]"
-_pat_destination = "\(.*?\)"
+_pat_placeholder = r"\[.*?\]"
+_pat_destination = r"\(.*?\)"
 # _pat_mdlink = "(\[.*\]\(.*\))"
 _pat_mdlink = f"{_pat_placeholder}{_pat_destination}"
 _pat_figure = f"!{_pat_mdlink}"
 PATTERN_MDLINK = re.compile(f"({_pat_mdlink})")
-PATTERN_MDLINK_FIGURE = re.compile(f"({_pat_figure})")
-PATTERN_MDLINK_BADGE = re.compile(f"(\[{_pat_figure}\]{_pat_destination})")
-PATTERN_HEADINGS = re.compile("(#{0,6}).*?")
-PATTERN_HEADINGS = re.compile("(#{0,6})\s+")
+PATTERN_MDLINK_FIGURE = re.compile(fr"({_pat_figure})")
+PATTERN_MDLINK_BADGE = re.compile(fr"(\[{_pat_figure}\]{_pat_destination})")
+PATTERN_HEADINGS = re.compile(r"(#{0,6}).*?")
+PATTERN_HEADINGS = re.compile(r"(#{0,6})\s+")
 # Text to replace
 PLACEHOLDER_MDLINK = "-MDLINK-"
 
@@ -268,12 +124,41 @@ def replace_links(text: str) -> tuple[str, list[str]]:
     return (replaced, all_links)
 
 
+def insert_links(text: str, links: list[str]) -> str:
+    """Function to replace back the links in the placeholders of the text.
+
+    Replaces the placeholders one at a time.
+
+    Args:
+        text (str): Text with placeholders.
+        links (list[str]): Links to insert in the placeholders.
+
+    Returns:
+        str: text with the links inserted back.
+    """
+    for link in links:
+        text = re.sub(PLACEHOLDER_MDLINK, link, text, count=1)
+    return text
+
+
 @dataclass
 class Piece:
     """Each of the pieces extracted from the Token Stream of the processor.
 
     Keeps the relevant information for the text to be translated and how to
     recreate it again.
+
+    Args:
+        content (str): The markdown text extracted.
+        position (int):
+            The position of the token in the MarkdownProcessor, internally
+            used to place the content back in the original file.
+        sentences (list[str]): Texts to be translated.
+        is_header (bool):
+            Determines whether the piece is a heading (they are treated
+            different).
+        headings (str): Headings (only relevant if is_header is True).
+        replaced
     """
 
     content: str
@@ -281,7 +166,7 @@ class Piece:
     sentences: list[str] = field(default_factory=list)
     is_header: bool = False
     headings: str = ""
-    _replaced: list[str] = field(default_factory=list)
+    replaced: list[str] = field(default_factory=list)
     _is_processed: bool = False
 
     def process(self) -> list[str]:
@@ -303,64 +188,163 @@ class Piece:
 
         if self.content.lstrip().startswith("#"):
             self.is_header = True
-            # TODO: A section heading can also be a link, check for it
             self.headings = re.findall(PATTERN_HEADINGS, self.content.lstrip())[0]
             # Replace the headings with spaces to obtain just the text.
             # Some models to translate text remove the the headings
             # and the information could be lost.
             self.content = self.content.replace(self.headings, "").lstrip()
-            # TODO: If its a link, should we stop here?
 
         (content, replaced) = replace_links(self.content)
-        self._replaced = replaced
+        self.replaced = replaced
         self.sentences = nltk.sent_tokenize(content)
 
         # In case its called more than once, avoid reprocessing.
         self._is_processed = True
         return self.sentences
 
-    def get_content(self) -> list[str]:
-        """Get the pieces of text to be translated.
-
-        Returns:
-            list[str]: Text, sentences to be translated.
-        """
-        pass
-
     def rebuild(self, translation: list[str]) -> str:
         """Rebuilds back the content to be a string like it was originally.
-        
+
         - In case of a header this means adding the (first) translated sentence
-        inserted to the previously obtained headings. 
+        inserted to the previously obtained headings.
+        - Otherwise it joins the translated sentences and replaced the possible
+        links.
         """
         if self.is_header:
             # We have to check if it contained any link
             text = translation[0]
-            if len(self._replaced) > 0:
+            if len(self.replaced) > 0:
                 # If thats the case, replace it and return the new heading
-                text = insert_links(text, self._replaced)
+                text = insert_links(text, self.replaced)
             return self.headings + " " + text
 
         # Join with whitespace, nltk is suposed to keep the points after
         # tokenizing a paragraph.
         new_content = " ".join(translation)
         # Insert the links in case there are any
-        new_content = insert_links(new_content, self._replaced)
+        new_content = insert_links(new_content, self.replaced)
+        self.content = new_content
         return new_content
 
 
-def insert_links(text: str, links: list[str]) -> str:
-    """Function to replace back the links in the placeholders of the text.
+class MarkdownProcessor:
+    """Class that allows to work with a markdown file, extracting
+    the text content to be translated.
 
-    Replaces the placeholders one at a time.
+    The expected format of the markdown file is the one used in hugo
+    for blogging.
 
     Args:
-        text (str): Text with placeholders.
-        links (list[str]): Links to insert in the placeholders.
+        markdown_content (str):
+            The content of a markdown file as a string.
 
-    Returns:
-        str: text with the links inserted back.
+    Notes:
+        See [gohugo](https://gohugo.io/) for type of markdown files
     """
-    for link in links:
-        text = re.sub(PLACEHOLDER_MDLINK, link, text, count=1)
-    return text
+
+    def __init__(self, markdown_content: str, parser_name: ParserName = "zero") -> None:
+        self.md = MarkdownIt(parser_name)
+        self._tokens: list[Token] = []
+        # self._positions: list[int] = []  # Not needed anymore
+        self._content = markdown_content
+        # Stores the links that may be captured when extracting the
+        # pieces of the markdown.
+        # List of paragraphs, containing a list of sentences, with maybe
+        # a list of links.
+        # self._replaced: list[list[list[str]]] = []
+        self._pieces: list[Piece] = []
+
+    @property
+    def tokens(self) -> list[Token]:
+        """Parsed pieces of the markdown file.
+        The content will be extracted from these pieces, updated and
+        created back.
+        """
+        if len(self._tokens) == 0:
+            self._tokens = self.md.parse(self._content)
+        return self._tokens
+
+    def __repr__(self) -> str:
+        return type(self).__name__ + f"({len(self.tokens)})"
+
+    def get_pieces(self) -> list[Piece]:
+        """Gets the pieces of the markdown file to be translated.
+
+        The relevant pieces are those tokens considered of type
+        'inline' and which aren't the front matter, a figure, code
+        or markdown comments.
+
+        Internally stores the position of the corresponding tokens
+        for later use.
+        """
+        self._pieces = []
+        for i, t in enumerate(self.tokens):
+            if t.type == "inline":
+                if any(
+                    (
+                        is_front_matter(t.content),
+                        is_figure(t.content),
+                        is_code(t.content),
+                        is_comment(t.content),
+                    )
+                ):
+                    continue
+                self._pieces.append(Piece(t.content, i))
+
+        return self._pieces
+
+    def update(self, translated_pieces: list[Piece]) -> None:
+        """Update the content with the translated pieces.
+
+        Its up to the user to check the pieces correspond to the original positions,
+        otherwise the document can have a bad 
+        It will (try) to replace all the pieces inserted.
+        A warning will appear if the translated_pieces don't have the same shape
+        as the already parsed.
+        
+        Args:
+            translated_pieces (list[Piece]):
+                List of pieces with the translated texts to insert back to the
+                document.
+
+        See Also:
+            [`get_pieces`](src.translate_md.markdown.MarkdownProcessor.write_to)
+        """
+        if len(self._pieces) != len(translated_pieces):
+            warn(
+                "There should be the same number of texts that you obtained from "
+                f"get_pieces: old pieces: {len(self._positions)}, new pieces: {len(translated_pieces)}. "
+                "The remaining content will be left as is."
+            )
+        for piece in translated_pieces:
+            # print(f"piece: {piece.position}")
+            pos = piece.position
+            self._tokens[pos].content = piece.content
+            # Not clear why it should be changed the children yet, but...
+            self._tokens[pos].children[0].content = piece.content
+
+    def render(self) -> str:
+        """Get a new markdown file with the paragraphs translated.
+
+        Args:
+            texts (list[str]): List of texts to insert back to the
+            document translated.
+        """
+        # dummy variables for render
+        options: Mapping[str, Any] = {}
+        env: MutableMapping = {}
+        renderer = MDRenderer()
+        output_markdown = renderer.render(self.tokens, options, env)
+        # mdformat adds some extra \, remove it before writing the content back.
+        output_markdown = output_markdown.replace("\\", "")
+        return output_markdown
+
+    def write_to(self, filename: Path) -> None:
+        """Write the content of the updated markdown to disk.
+
+        Args:
+            filename (Path): Name of the new file.
+        """
+        translated_file = self.render()
+        with open(filename, "w") as f:
+            f.write(translated_file)

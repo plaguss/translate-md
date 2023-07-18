@@ -271,7 +271,7 @@ mdproc_rich = md.MarkdownProcessor(md.read_file(filename_rich), parser_name=pars
 
 
 @pytest.fixture
-def mdprocessor_rich():
+def mdprocessor_rich() -> md.MarkdownProcessor:
     return md.MarkdownProcessor(md.read_file(filename_rich), parser_name=parser_name)
 
 
@@ -313,19 +313,17 @@ class TestMarkdownProcessorNew:
 
         assert len(replaced[5]) == 1
 
-    # def test_update(self, mdprocessor_rich):
-    #     pieces = mdprocessor_rich.get_pieces()
-    #     with pytest.raises(ValueError):
-    #         mdprocessor_rich.update(["wrong length"])
-    #     new_pieces = [""] * len(pieces)
-    #     new_pieces[0] = "texto traducido"
-    #     mdprocessor_rich.update(new_pieces)
-    #     assert (
-    #         mdprocessor_rich.tokens[mdprocessor_rich._positions[0]].content == "texto traducido"
-    #     )
-    #     assert all(
-    #         [mdprocessor_rich._tokens[p].content == "" for p in mdprocessor_rich._positions[1:]]
-    #     )
+    def test_update(self, mdprocessor_rich):
+        pieces = mdprocessor_rich.get_pieces()
+        # Process every piece
+        [p.process() for p in pieces]
+        new_pieces = pieces
+        new_pieces[0].rebuild(["texto traducido"])
+
+        mdprocessor_rich.update(new_pieces)
+
+        # Simple text on the new content of the corresponding token
+        assert mdprocessor_rich._tokens[new_pieces[0].position].content == "texto traducido"
 
     # def test_render(self, mdprocessor_rich):
     #     # Update with silly content
