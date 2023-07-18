@@ -325,17 +325,20 @@ class TestMarkdownProcessorNew:
         # Simple text on the new content of the corresponding token
         assert mdprocessor_rich._tokens[new_pieces[0].position].content == "texto traducido"
 
-    # def test_render(self, mdprocessor_rich):
-    #     # Update with silly content
-    #     pieces = mdprocessor_rich.get_pieces()
-    #     assert len(mdprocessor_rich._content) == 6250
-    #     # new_pieces = [""] * len(pieces)
-    #     new_pieces = ["hola"] * len(pieces)
-    #     mdprocessor_rich.update(new_pieces)
+    def test_render(self, mdprocessor_rich):
+        # Update with silly content
+        pieces = mdprocessor_rich.get_pieces()
+        assert len(mdprocessor_rich._content) == 17146
+        new_pieces = []
+        for p in pieces:
+            p.rebuild(["hi"])
+            new_pieces.append(p)
 
-    #     out = mdprocessor_rich.render()
-    #     assert len(out) == 1615
-    #     assert "hola" in out
+        mdprocessor_rich.update(new_pieces)
+
+        out = mdprocessor_rich.render()
+        assert len(out) == 2953
+        assert "hi" in out
 
     # def test_write_to(self, mdprocessor_rich):
     #     # Update with silly content
