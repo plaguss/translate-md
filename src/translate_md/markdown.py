@@ -348,3 +348,4 @@ class MarkdownProcessor:
         translated_file = self.render()
         with open(filename, "w") as f:
             f.write(translated_file)
+        print(f"File written to: {filename}.")
