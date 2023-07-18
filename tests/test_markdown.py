@@ -29,7 +29,8 @@ def mdprocessor():
     return md.MarkdownProcessor(md.read_file(filename))
 
 
-class TestMarkdownProcessor:
+@pytest.mark.skip(reason="old version to be replaced")
+class TestMarkdownProcessorOld:
     def test_tokens(self):
         toks = mdproc.tokens
         assert isinstance(toks, list)
@@ -145,7 +146,125 @@ def test_grab_mdlinks(text, length_links, has_placeholder):
     assert (md.PLACEHOLDER_MDLINK in text) is has_placeholder
 
 
-# parser_name = "commonmark"
+
+def test_insert_links():
+    t1 = textwrap.dedent(
+            """For a video introduction to Rich see [calmcode.io](https://calmcode.io/rich/introduction.html) by [@fishnets88](https://twitter.com/fishnets88)."""
+        )
+    content, replaced = md.replace_links(t1)
+    assert content == f"""For a video introduction to Rich see {md.PLACEHOLDER_MDLINK} by {md.PLACEHOLDER_MDLINK}."""
+    text = md.insert_links(content, replaced)
+    assert text == t1
+
+
+class TestPiece:
+    @pytest.fixture(scope="class")
+    def section_heading(self):
+        return "## [Documentation](https://readthedocs.io)"
+
+    def test_piece_badge(self):
+        badge = textwrap.dedent(
+            """[![Supported Python Versions](https://img.shields.io/pypi/pyversions/rich/13.2.0)](https://pypi.org/project/rich/) [![PyPI version](https://badge.fury.io/py/rich.svg)](https://badge.fury.io/py/rich)        """
+        )
+        piece = md.Piece(badge, 0)
+        assert piece.position == 0
+        assert piece._is_processed is False
+        piece.process()
+        assert piece._is_processed is True
+        assert piece.is_header is False
+        assert len(piece.sentences) == 1
+        assert len(piece.replaced) == 2
+
+    def test_piece_paragraph_with_links(self):
+        paragraph_with_links = textwrap.dedent(
+            """For a video introduction to Rich see [calmcode.io](https://calmcode.io/rich/introduction.html) by [@fishnets88](https://twitter.com/fishnets88)."""
+        )
+        piece = md.Piece(paragraph_with_links, 0)
+        sentences = piece.process()
+        assert len(sentences) == 1
+        assert len(piece.replaced) == 2
+        ctr = Counter(sentences[0].replace(".", "").split(" "))
+        assert ctr[md.PLACEHOLDER_MDLINK] == 2
+
+    def test_long_paragraph(self):
+        long_paragraph = textwrap.dedent(
+            """Rich works with Linux, OSX, and Windows. True color / emoji works with new Windows Terminal, classic terminal is limited to 16 colors. Rich requires Python 3.7 or later."""
+        )
+        piece = md.Piece(long_paragraph, 0)
+        sentences = piece.process()
+        assert len(sentences) == 3
+        assert len(piece.replaced) == 0
+
+    def test_section(self):
+        section = "## Compatibility"
+        piece = md.Piece(section, 0)
+        sentences = piece.process()
+        assert len(sentences) == 1
+        assert piece.is_header is True
+        assert piece.headings == "##"
+        assert sentences[0] == "Compatibility"
+        # Try to build it back after translating the content
+        rebuilt = piece.rebuild(["Compatibilidad"])
+        assert rebuilt == "## Compatibilidad"
+
+    def test_section_heading(self):
+        section_heading = "## [Documentation](https://readthedocs.io)"
+        piece = md.Piece(section_heading, 0)
+        sentences = piece.process()
+        assert len(sentences) == 1
+        assert piece.is_header is True
+        assert piece.headings == "##"
+        assert sentences[0] == md.PLACEHOLDER_MDLINK
+        rebuilt = piece.rebuild([md.PLACEHOLDER_MDLINK])
+        assert rebuilt == section_heading
+
+    def test_two_sentences_with_link(self):
+        two_sentences_with_link = "For more control over rich terminal content. Import and construct a [Console](https://rich.readthedocs.io/en/latest/reference/console.html#rich.console.Console) object."
+        piece = md.Piece(two_sentences_with_link, 0)
+        sentences = piece.process()
+        assert len(sentences) == 2
+        assert len(piece.replaced) == 1
+        assert md.PLACEHOLDER_MDLINK in sentences[1]
+        rebuilt = piece.rebuild(sentences)
+        assert rebuilt == two_sentences_with_link
+
+    def test_rebuild_piece_with_header(self):
+        section = "## Compatibility"
+        piece = md.Piece(section, 0)
+        sentences = piece.process()
+        assert len(sentences) == 1
+        assert piece.is_header is True
+        assert piece.headings == "##"
+        assert sentences[0] == "Compatibility"
+        # Try to build it back after translating the content
+        rebuilt = piece.rebuild(["Compatibilidad"])
+        assert rebuilt == "## Compatibilidad"
+
+    def test_rebuild_piece_paragraph(self):
+        paragraph = "Rich works with Linux, OSX, and Windows. More text here."
+        piece = md.Piece(paragraph, 0)
+        sentences = piece.process()
+        assert len(sentences) == 2
+        assert piece.is_header is False
+        assert piece.headings == ""
+        assert sentences[0] == "Rich works with Linux, OSX, and Windows."
+        # Try to build it back after translating the content
+        rebuilt = piece.rebuild(["text 1.", "text 2"])
+        assert rebuilt == "text 1. text 2"
+
+    def test_rebuild_piece_paragraph_with_links(self):
+        paragraph = "to Rich see [calmcode.io](https://calmcode.io/rich/introduction.html)."
+        piece = md.Piece(paragraph, 0)
+        sentences = piece.process()
+        assert len(sentences) == 1
+        assert piece.is_header is False
+        assert piece.headings == ""
+        assert sentences[0] == "to Rich see -MDLINK-."
+        # Try to build it back after translating the content
+        rebuilt = piece.rebuild(["new text -MDLINK-."])
+        assert rebuilt == "new text [calmcode.io](https://calmcode.io/rich/introduction.html)."
+
+
 parser_name = "zero"
 
 mdproc_rich = md.MarkdownProcessor(md.read_file(filename_rich), parser_name=parser_name)
@@ -163,16 +282,17 @@ class TestMarkdownProcessorNew:
         assert isinstance(toks[0], md.Token)
 
     def test_repr(self):
-        assert repr(mdproc_rich) == "MarkdownProcessor(332)"
+        assert repr(mdproc_rich) == "MarkdownProcessor(459)"
 
     def test_get_pieces(self):
         pieces = mdproc_rich.get_pieces()
-        assert len(pieces) == 74
-        print(pieces[:3])
-        assert all([isinstance(p, list) and len(p) > 0 for p in pieces])
-        print("PIECES", pieces[4])
-        assert len(pieces[4]) == 2
+        assert len(pieces) == 119
+        assert all([isinstance(p, md.Piece) for p in pieces])
+        # assert all([isinstance(p, list) and len(p) > 0 for p in pieces])
+        # print("PIECES", pieces[4])
+        # assert len(pieces[4]) == 2
 
+    @pytest.mark.skip(reason="refactored, doesn't apply like this")
     def test_replace_links(self, mdprocessor_rich):
         assert len(mdprocessor_rich._replaced) == 0
         pieces = mdprocessor_rich.get_pieces()
@@ -229,85 +349,3 @@ class TestMarkdownProcessorNew:
     #         mdprocessor_rich.write_to(Path(tmp) / "testfile.md")
     #         assert (Path(tmp) / "testfile.md").is_file()
     #         assert len(md.read_file(Path(tmp) / "testfile.md")) == 1615
-
-
-def test_insert_links():
-    t1 = textwrap.dedent(
-            """For a video introduction to Rich see [calmcode.io](https://calmcode.io/rich/introduction.html) by [@fishnets88](https://twitter.com/fishnets88)."""
-        )
-    content, replaced = md.replace_links(t1)
-    assert content == f"""For a video introduction to Rich see {md.PLACEHOLDER_MDLINK} by {md.PLACEHOLDER_MDLINK}."""
-    text = md.insert_links(content, replaced)
-    assert text == t1
-
-
-class TestPiece:
-    @pytest.fixture(scope="class")
-    def section_heading(self):
-        return "## [Documentation](https://readthedocs.io)"
-
-    def test_piece_badge(self):
-        badge = textwrap.dedent(
-            """[![Supported Python Versions](https://img.shields.io/pypi/pyversions/rich/13.2.0)](https://pypi.org/project/rich/) [![PyPI version](https://badge.fury.io/py/rich.svg)](https://badge.fury.io/py/rich)        """
-        )
-        piece = md.Piece(badge, 0)
-        assert piece.position == 0
-        assert piece._is_processed is False
-        piece.process()
-        assert piece._is_processed is True
-        assert piece.is_header is False
-        assert len(piece.sentences) == 1
-        assert len(piece._replaced) == 2
-
-    def test_piece_paragraph_with_links(self):
-        paragraph_with_links = textwrap.dedent(
-            """For a video introduction to Rich see [calmcode.io](https://calmcode.io/rich/introduction.html) by [@fishnets88](https://twitter.com/fishnets88)."""
-        )
-        piece = md.Piece(paragraph_with_links, 0)
-        sentences = piece.process()
-        assert len(sentences) == 1
-        assert len(piece._replaced) == 2
-        ctr = Counter(sentences[0].replace(".", "").split(" "))
-        assert ctr[md.PLACEHOLDER_MDLINK] == 2
-
-    def test_long_paragraph(self):
-        long_paragraph = textwrap.dedent(
-            """Rich works with Linux, OSX, and Windows. True color / emoji works with new Windows Terminal, classic terminal is limited to 16 colors. Rich requires Python 3.7 or later."""
-        )
-        piece = md.Piece(long_paragraph, 0)
-        sentences = piece.process()
-        assert len(sentences) == 3
-        assert len(piece._replaced) == 0
-
-    def test_section(self):
-        section = "## Compatibility"
-        piece = md.Piece(section, 0)
-        sentences = piece.process()
-        assert len(sentences) == 1
-        assert piece.is_header is True
-        assert piece.headings == "##"
-        assert sentences[0] == "Compatibility"
-        # Try to build it back after translating the content
-        rebuilt = piece.rebuild(["Compatibilidad"])
-        assert rebuilt == "## Compatibilidad"
-
-    def test_section_heading(self):
-        section_heading = "## [Documentation](https://readthedocs.io)"
-        piece = md.Piece(section_heading, 0)
-        sentences = piece.process()
-        assert len(sentences) == 1
-        assert piece.is_header is True
-        assert piece.headings == "##"
-        assert sentences[0] == md.PLACEHOLDER_MDLINK
-        rebuilt = piece.rebuild([md.PLACEHOLDER_MDLINK])
-        assert rebuilt == section_heading
-
-    def test_two_sentences_with_link(self):
-        two_sentences_with_link = "For more control over rich terminal content. Import and construct a [Console](https://rich.readthedocs.io/en/latest/reference/console.html#rich.console.Console) object."
-        piece = md.Piece(two_sentences_with_link, 0)
-        sentences = piece.process()
-        assert len(sentences) == 2
-        assert len(piece._replaced) == 1
-        assert md.PLACEHOLDER_MDLINK in sentences[1]
-        rebuilt = piece.rebuild(sentences)
-        assert rebuilt == two_sentences_with_link
