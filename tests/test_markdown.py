@@ -289,29 +289,6 @@ class TestMarkdownProcessorNew:
         assert len(pieces) == 119
         assert all([isinstance(p, md.Piece) for p in pieces])
         # assert all([isinstance(p, list) and len(p) > 0 for p in pieces])
-        # print("PIECES", pieces[4])
-        # assert len(pieces[4]) == 2
-
-    @pytest.mark.skip(reason="refactored, doesn't apply like this")
-    def test_replace_links(self, mdprocessor_rich):
-        assert len(mdprocessor_rich._replaced) == 0
-        pieces = mdprocessor_rich.get_pieces()
-        replaced = mdprocessor_rich._replaced
-        assert len(replaced) == 74
-        assert isinstance(replaced[0], list)
-        assert isinstance(replaced[0][0], list)
-        assert len(replaced[0]) == 1
-        assert len(replaced[0][0]) == 2
-
-        assert len(replaced[1]) == 4
-        assert len(replaced[1][0]) == 1
-
-        assert len(replaced[2]) == 18
-        assert len(replaced[2][0]) == 1
-
-        assert len(replaced[4]) == 1
-
-        assert len(replaced[5]) == 1
 
     def test_update(self, mdprocessor_rich):
         pieces = mdprocessor_rich.get_pieces()
@@ -340,13 +317,17 @@ class TestMarkdownProcessorNew:
         assert len(out) == 2953
         assert "hi" in out
 
-    # def test_write_to(self, mdprocessor_rich):
-    #     # Update with silly content
-    #     pieces = mdprocessor_rich.get_pieces()
-    #     new_pieces = ["hola"] * len(pieces)
-    #     mdprocessor_rich.update(new_pieces)
+    def test_write_to(self, mdprocessor_rich):
+        # Update with silly content
+        pieces = mdprocessor_rich.get_pieces()
+        new_pieces = []
+        for p in pieces:
+            p.rebuild(["hi"])
+            new_pieces.append(p)
 
-    #     with tempfile.TemporaryDirectory() as tmp:
-    #         mdprocessor_rich.write_to(Path(tmp) / "testfile.md")
-    #         assert (Path(tmp) / "testfile.md").is_file()
-    #         assert len(md.read_file(Path(tmp) / "testfile.md")) == 1615
+        mdprocessor_rich.update(new_pieces)
+
+        with tempfile.TemporaryDirectory() as tmp:
+            mdprocessor_rich.write_to(Path(tmp) / "testfile.md")
+            assert (Path(tmp) / "testfile.md").is_file()
+            assert len(md.read_file(Path(tmp) / "testfile.md")) == 2953
